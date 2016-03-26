@@ -1,81 +1,105 @@
-#Copyright © /u/sagiksp 2016, all right reserved.
-#Seriously, don't be a dick.
+# Copyright © /u/sagiksp 2016, all right reserved.
+# Seriously, don't be a dick.
+import time
+import traceback
 
-import praw, time
+import praw
 
-#Variables
+# Variables
 
-users = [] #Array of all people that used the bot, and times of use. Format: [[Username,UTC_Time],[Username,UTC_Time],...]
+# Self-explanatory
+username = ""
+password = ""
+user_agent = ""
 
-Triggers = ['What', 'what', 'WHAT', 'What?', 'what?', 'WHAT?',
-             'Wut', 'wut', 'WUT', 'Wut?', 'wut?', 'WUT?',
-             'Wat', 'wat', 'WAT', 'Wat?', 'wat?', 'WAT?'] #Texts that trigger the bot.
-
+# Dict of all people that used the bot, and times of use.
+# Format: {username: utc_time, etc.}
+users = {}
+# List of parent comments that have already been yelled.
+yelled = []
+# Words that activate the bot
+triggers = ('what', 'wut', 'wat')
+# Footer placed at the end of a comment with link to bot's subreddit.
 footer = """***
 
-[^^^Beep ^^^boop.](https://np.reddit.com/r/CantHearYouBot/)""" #Text to be in the end of a message
+[^^^Beep ^^^boop.](https://np.reddit.com/r/CantHearYouBot/)"""
 
-def check_condition(c): #Check the bot condition
-    return (c.body in Triggers) and (not RateLimit(c.author.name)) #Is the comment a trigger, and is the author not rate limited.
 
-def bot_action(c,r): #Action the bot preforms
-    global users
-    parent = r.get_info(thing_id=c.parent_id) #get parent comment
-    if isNotAValidComment(parent): return #If it is a response to a thread, stop.
-    
-    users.append([c.author.name,c.created_utc]) #Add username and time of use to the users list
-    
-    if check_condition(parent): #What What
-        try: #Crashed without this
-            c.reply("In da but")
-        except:
-            pass
+def check_condition(comment):
+    # type(praw.objects.Comment) -> bool
+    # Check if a comment should trigger the bot.
+    trigged = comment.body.lower().rstrip('?') in triggers
+    return trigged and not rate_limit(comment.author.name)
+
+
+def bot_action(comment, r):
+    # type(praw.object.Comment, praw.Reddit) -> None
+    # The actions of the bot, after doing some checks it will reply.
+
+    # True if the comment is a top level reply.
+    if comment.is_root:
         return
-    
-    lines = parent.body.split("\n") #Split parent into lines
-    total = ""
-    for line in lines: #for each line
-        total += parseLine(line) #Parse line and add to total
-    try: #Crashes without this
-        c.reply(total + footer) #reply
-        print("\n"+total+"\n\n") #Debug
-    except:
+    # True if the comment has already been yelled.
+    if comment.id in yelled:
         return
-    
 
-def findUsersWithName(name): #find all people with username on the users list
-    uses = []
-    for use in users: #For each use
-        if use[0] == name: #If use name is username
-            uses.append(use) 
-    return uses #Yesus
+    parent = r.get_info(thing_id=comment.parent_id)
+    # Prevent people from getting the bot to echo itself.
+    if parent.author.name == username:
+        return
 
-def getLastTimeOfUse(name): #Get last time a username has used the bot
-    return findUsersWithName(name)[-1][1]
-    
-def RateLimit(username): #Boolean. if user has used the bot in the last 5 minutes, stop.
-    c_time = time.time() #Current time
-    if findUsersWithName(username) == []: #first time using the bot
-        return False #No Rate limiting
-    lastUseTime = getLastTimeOfUse(username) #Latest time of use
-    return (c_time - lastUseTime) <= 300 #has the user used the bot in the last 300 seconds (5 minutes)
+    users.append([comment.author.name, comment.created_utc])
+    yelled.append(comment.id)
+
+    # True if both comments are triggers.
+    # comment 1: what
+    #   comment 2: what
+    if check_condition(parent):
+        try:
+            comment.reply("In da but")
+        except praw.errors.APIException:
+            print("Error while replying to comment: ")
+            traceback.print_exc()
+        return
+
+    lines = parent.body.splitlines()
+    reply = ""
+    for line in lines:
+        reply += parse_line(line)
+
+    try:
+        comment.reply(reply + footer)
+        print("Replying to user:\n{reply}".format(reply=reply))
+        print("Permalink to comment: {url}".format(url=comment.permalink))
+    except praw.errors.APIException:
+        print("Error while replying to comment: ")
+        traceback.print_exc()
 
 
-def parseLine(line):
-    #For the gods of python above, please make a switch statement.
-    if line == "": return "\n" 
-    if line[0] ==  "#": return line.upper() + "\n" #If line already bolded, ignore.
-    if line == "***": return "***\n" #If line is *** (Horizontal rule), ignore.
-    if line == "[^^^Beep ^^^boop.](https://np.reddit.com/r/CantHearYouBot/)": return "#[^^^BEEP ^^^BOOP.](https://np.reddit.com/r/CantHearYouBot/)\n" #TODO: Make links work. Currently it capitalizes the link address. A work around for the subreddit link
-    if line == "#[^^^BEEP ^^^BOOP.](https://np.reddit.com/r/CantHearYouBot/)": return line + "\n" #Here too. It's not working. Send help.
-    return "#" + line.upper() + "\n" #For normal lines, bold it and go home.
+def rate_limit(name):
+    # type(str) -> bool
+    current_time = time.time()
+    if name not in users:
+        return False
+    last_use = users[name]
+    return current_time - last_use <= 300
 
-def isNotAValidComment(thing): #Is it not a valid comment
-    return hasattr(thing,"domain") #If it has domain, It's a post, so ignore.
 
-r = praw.Reddit("##################USERAGENT#############") #user_agent
-r.login(username="@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@USERNAME@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",password="@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@PASSWORD@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",disable_warning=True)#replace username and password with bots username and password
+def parse_line(line):
+    # type(str) -> str
+    if line == "":
+        return "\n"
+    if line[0] == "#":
+        return "{line}\n".format(line=line.upper())
+    if line == "***":
+        return "***\n"
+    return "#{line}\n".format(line=line.upper())
 
-for c in praw.helpers.comment_stream(r, 'all'): #for all comments
-    if check_condition(c): #If condition
-        bot_action(c,r) #Action
+
+if __name__ == "__main__":
+    r = praw.Reddit(user_agent=user_agent)
+    r.login(username=username, password=password, disable_warning=True)
+
+    for comment in praw.helpers.comment_stream(r, 'all'):
+        if check_condition(comment):
+            bot_action(comment)
