@@ -36,22 +36,24 @@ def bot_action(comment, r):
     # type(praw.object.Comment, praw.Reddit) -> None
     # The actions of the bot, after doing some checks it will reply.
 
-    # Get parent comment
-    parent = r.get_info(thing_id=comment.parent_id)
-    # If the comment has a domain attribute, it's a top level reply.
-    if hasattr(parent, "domain"):
-        return
-    # Prevent people from getting the bot to echo itself.
-    if parent.author.name == username:
+    # True if the comment is a top level reply.
+    if comment.is_root:
         return
     # True if the comment has already been yelled.
     if comment.id in yelled:
+        return
+
+    parent = r.get_info(thing_id=comment.parent_id)
+    # Prevent people from getting the bot to echo itself.
+    if parent.author.name == username:
         return
 
     users.append([comment.author.name, comment.created_utc])
     yelled.append(comment.id)
 
     # True if both comments are triggers.
+    # comment 1: what
+    #   comment 2: what
     if check_condition(parent):
         try:
             comment.reply("In da but")
