@@ -39,17 +39,17 @@ def bot_action(comment, r):
     # True if the comment is a top level reply.
     if comment.is_root:
         return
-    # True if the comment has already been yelled.
-    if comment.id in yelled:
-        return
 
     parent = r.get_info(thing_id=comment.parent_id)
+    # True if the comment has already been yelled.
+    if parent.id in yelled:
+        return
     # Prevent people from getting the bot to echo itself.
     if parent.author.name == username:
         return
 
     users.append([comment.author.name, comment.created_utc])
-    yelled.append(comment.id)
+    yelled.append(parent.id)
 
     # True if both comments are triggers.
     # comment 1: what
