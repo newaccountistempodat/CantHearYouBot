@@ -102,4 +102,4 @@ if __name__ == "__main__":
 
     for comment in praw.helpers.comment_stream(r, 'all'):
         if check_condition(comment):
-            bot_action(comment)
+            bot_action(comment, r)
