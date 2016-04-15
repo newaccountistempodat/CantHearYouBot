@@ -5,7 +5,7 @@ import praw, time
 
 #Variables
 
-user_agent="CantHearYou by /u/sagiksp"
+user_agent=""
 username=""
 password=""
 
