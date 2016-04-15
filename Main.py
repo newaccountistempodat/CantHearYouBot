@@ -1,7 +1,7 @@
 #Copyright © /u/sagiksp 2016, all right reserved.
 #Seriously, don't be a dick.
 
-import praw, time, webbrowser
+import praw, time
 
 #Variables
 
