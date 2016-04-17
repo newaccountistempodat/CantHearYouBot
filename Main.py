@@ -13,15 +13,14 @@ users = [] #Array of all people that used the bot, and times of use. Format: [[U
 
 yelled = []
 
-Triggers = ['what', 'wut', 'wat']
-Triggers += list(word + '?' for word in Triggers) # append ? to the ends of each of the words above
+Triggers = ('what', 'wut', 'wat')
 
 footer = """***
 
 [^^^Beep ^^^boop.](https://np.reddit.com/r/CantHearYouBot/)""" #Text to be in the end of a message
 
 def check_condition(c): #Check the bot condition
-    return (c.body.lower() in Triggers) and (not RateLimit(c.author.name)) #Is the comment a trigger, and is the author not rate limited.
+    return (c.body.lower().rstrip('?') in Triggers) and (not RateLimit(c.author.name)) #Is the comment a trigger, and is the author not rate limited.
 
 def bot_action(c,r): #Action the bot preforms
     global users
