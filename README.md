@@ -25,7 +25,7 @@ This bot will not work if a comment is a reply to a post, only if it is a reply 
 
 */u/CantHearYouBot*: in da but
 
-This is a reference to the popular song "Jizz in my pants", in which one of the recurring lines is "What What, In the butt".
+This is a reference to the popular song "What what (in the butt)", in which one of the recurring lines is "What What, In the butt".
 
 
 ***
