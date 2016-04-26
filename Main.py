@@ -75,8 +75,10 @@ def parseLine(line):
         return line + '\n'
     
     # Bold the line
-    if line[0] != '#':
-        line = '#' + line
+    if line[0] == ">":
+       line = ">#" + line[1:]
+    elif line[0] != '#':
+       line = '#' + line
     
     # Uppercase the line, all except URLs. Could probably be made more effective?
     ldata = re.split(r"(\[.*?\]\(.*?\))", line) # this finds reddit markdown URLs, i.e. [google](http://google.com)
