@@ -1,6 +1,3 @@
-#Copyright: Copyright 2016 /u/sagiksp, all right reserved.
-#Seriously, don't be a dick.
-
 import praw, time, re
 
 #Variables
