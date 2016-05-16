@@ -1,4 +1,11 @@
+#Made by /u/sagiksp
+
 import praw, time, re
+
+#force single instance - to prevent fuckups
+
+from tendo import singleton
+SingleInstance = singleton.SingleInstance()
 
 #Variables
 
