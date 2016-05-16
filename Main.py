@@ -10,7 +10,7 @@ users = [] #Array of all people that used the bot, and times of use. Format: [[U
 
 yelled = []
 
-Triggers = ('what', 'wut', 'wat')
+Triggers = ('what', 'wut', 'wat', 'wot')
 
 footer = """***
 
